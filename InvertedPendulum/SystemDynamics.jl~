@@ -1,0 +1,37 @@
+using JLD2
+
+
+
+# ====================
+# General description 
+# ====================
+
+# A dynamical system consisting of an inverted pendulum on a cart.
+# The state is fully determined as y=[x, dx/dt, θ , dθ/dt]
+# Full nonlinear state can be determined using the Eular Lagrange equations
+# System can be linearized about its fixed points and represented as:
+# dy/dt= Ay + Bu
+# Where Bu is a control input to be used to stabilize the system 
+
+
+
+# ========================================
+# Developing the RHS of the linear system 
+# ========================================
+
+
+
+function dy = cartPent(y,m,M,L,g,d,u)
+    
+
+    Sy=sin(y(3));
+    Cy=cos(y(3));
+    D=m*L*L(M+m*(1.0-Cy^2));
+    dy(1,1) = y(2);
+    
+    
+
+
+end
+
+
