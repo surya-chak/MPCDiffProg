@@ -10,7 +10,7 @@ using Flux
 using DiffEqFlux
 using Optim
 using DiffEqSensitivity
-using Zygote
+using Zygote: gradient, @ignore
 
 @pyimport matplotlib.animation as anim
 
@@ -43,10 +43,13 @@ include("SystemDynamics.jl")
 #      [  x  ]
 #      [dx/dt]
 
+timeList=[];
+dy=zeros(4);
 yInit=[π-0.2*π,0,0,0]; #init conditions
 tSpan=(0.0,timeIntegre);
 forcingVec=zeros(length(tVec));
 probNoControl = ODEProblem(cartPendNonLin!, yInit, tSpan, forcingVec);
+
 
 println("Solving inverted pendulum on a cart withotu control...")
 sol = Array(solve(probNoControl, Tsit5(),saveat=0.0:dtSnap:timeIntegre));
@@ -59,8 +62,6 @@ solMat=sol;
 # ==================================
 
 probOneShotControl = ODEProblem(cartPendNonLin!, yInit, tSpan, p);
-
-
 # ----- Forward pass function -----
 function predict_adjoint() # Trainable layer
     return Array(solve(probOneShotControl, Tsit5(), saveat=dtSnap, reltol=1e-4));
@@ -89,6 +90,10 @@ end
 # Training begins here
 # ====================
 cb()
+# # ----- testing if gradient alone works -----
+# grads = gradient(() -> sum(loss_adjoint()), Params(p))
+
+
 @info "Start training"
 Flux.train!(loss_adjoint, params, Iterators.repeated((), 5000), opt, cb = cb)
 @info "Finished Training"

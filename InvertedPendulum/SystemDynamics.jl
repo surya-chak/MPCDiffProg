@@ -16,11 +16,11 @@
 # ----- RHS of the NonLinearSystem -----
 function cartPendNonLin!(dy,y,p,t)
 
-    fVec=p;                 # Control Input
-
-
     # ----- Just chosing the chontrol input using floor function probably not differentiable -----
-    f=fVec[Int(floor(timeIntegre/dtSnap))+1];
+    # @ignore maskVec=Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
+
+    # f=p'*maskVec
+    f=0.0;
     
     # ----- Deconstruct the state -----
     y1=y[1];                    # θ
