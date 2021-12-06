@@ -43,7 +43,6 @@ include("SystemDynamics.jl")
 #      [  x  ]
 #      [dx/dt]
 
-timeList=[];
 dy=zeros(4);
 yInit=[π-0.2*π,0,0,0]; #init conditions
 tSpan=(0.0,timeIntegre);
@@ -97,5 +96,4 @@ cb()
 @info "Start training"
 Flux.train!(loss_adjoint, params, Iterators.repeated((), 5000), opt, cb = cb)
 @info "Finished Training"
-
 

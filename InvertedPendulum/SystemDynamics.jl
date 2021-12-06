@@ -17,10 +17,10 @@
 function cartPendNonLin!(dy,y,p,t)
 
     # ----- Just chosing the chontrol input using floor function probably not differentiable -----
-    # @ignore maskVec=Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
-
+    # maskVec=Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
     # f=p'*maskVec
-    f=0.0;
+    f=p[Int(floor(t/dtSnap)+1)]
+    # f=0.0;
     
     # ----- Deconstruct the state -----
     y1=y[1];                    # θ
