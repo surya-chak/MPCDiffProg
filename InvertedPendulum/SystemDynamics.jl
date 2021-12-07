@@ -16,11 +16,16 @@
 # ----- RHS of the NonLinearSystem -----
 function cartPendNonLin!(dy,y,p,t)
 
-    # ----- Just chosing the chontrol input using floor function probably not differentiable -----
-    # maskVec=Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
-    # f=p'*maskVec
-    f=p[Int(floor(t/dtSnap)+1)]
-    # f=0.0;
+    # ----- Deriving a mask vector that can then be used to select the correct input -----
+    maskVec=@ignore Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
+    f=p'*maskVec
+
+    # ----- chosing the chontrol input using floor function probably not differentiable -----
+    # f=p[Int(floor(t/dtSnap)+1)]
+
+    # ----- Defining an external function to get input and its derivative will also be declared -----
+    f=getForce(t)
+
     
     # ----- Deconstruct the state -----
     y1=y[1];                    # θ
@@ -44,6 +49,17 @@ function cartPendNonLin!(dy,y,p,t)
 end
 
 
+
+# ----- Function to output the force at the current time instant based on time -----
+function getForce(t)
+    maskVec=@ignore Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
+    f=p'*maskVec
+end
+
+function rrule(::typeof(getForce),t)
+
+
+end
 
 # ----- New systemDynamics integrator using Euler -----
 function eulerCartPendNonLin(yInit,p)
