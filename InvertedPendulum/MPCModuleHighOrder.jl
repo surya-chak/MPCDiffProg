@@ -11,7 +11,7 @@ using DiffEqFlux
 using Optim
 using DiffEqSensitivity
 using Zygote: gradient, @ignore
-import ChainRulesCore: rrule, NO_FIELDS
+import ChainRulesCore: rrule, DoesNotExist,NO_FIELDS
 
 
 
