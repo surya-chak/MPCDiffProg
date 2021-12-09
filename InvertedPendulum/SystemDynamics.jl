@@ -17,14 +17,23 @@
 function cartPendNonLin!(dy,y,p,t)
 
     # ----- Deriving a mask vector that can then be used to select the correct input -----
-    maskVec=@ignore Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
-    f=p'*maskVec
+    # maskVec=@ignore Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
+    # f=p'*maskVec
 
+    # ----- doing the same as above but using tanh functions now -----
+    # grad=100;
+    # f=p'*(tanh.(grad*(t.- tVec)).+ tanh.(.- grad*(t.- (tVec .+ dtSnap./2))))
+    
+    # f=0;
+    # for iTime in 1:length(tVec)
+    #     f += p[iTime]*controlWindow(t)[iTime];
+    # end
+    
     # ----- chosing the chontrol input using floor function probably not differentiable -----
-    # f=p[Int(floor(t/dtSnap)+1)]
+    f=p[Int(floor(t/dtSnap)+1)]
 
     # ----- Defining an external function to get input and its derivative will also be declared -----
-    f=getForce(t)
+    # f=getForce(t)
 
     
     # ----- Deconstruct the state -----
@@ -50,16 +59,22 @@ end
 
 
 
+function controlWindow(time)
+    grad=100;
+    return (tanh.(grad*(time.- tVec)).+ tanh.(.- grad*(time.- (tVec .+ dtSnap./2))))
+end
+    
+
 # ----- Function to output the force at the current time instant based on time -----
-function getForce(t)
-    maskVec=@ignore Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
-    f=p'*maskVec
-end
+# function getForce(t)
+#     maskVec=@ignore Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
+#     f=p'*maskVec
+# end
 
-function rrule(::typeof(getForce),t)
+# function rrule(::typeof(getForce),t)
 
 
-end
+# end
 
 # ----- New systemDynamics integrator using Euler -----
 function eulerCartPendNonLin(yInit,p)

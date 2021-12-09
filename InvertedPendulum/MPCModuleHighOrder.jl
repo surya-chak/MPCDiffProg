@@ -11,9 +11,7 @@ using DiffEqFlux
 using Optim
 using DiffEqSensitivity
 using Zygote: gradient, @ignore
-import ChainRulesCore: rrule, DoesNotExist,NO_FIELDS
-
-
+# import ChainRulesCore: rrule, DoesNotExist,NO_FIELDS
 
 @pyimport matplotlib.animation as anim
 
@@ -62,6 +60,7 @@ solMat=sol;
 # ==================================
 # Declaring Loss and flux parameters  
 # ==================================
+thetaTargetVec=π.*ones(nSnap);
 
 probOneShotControl = ODEProblem(cartPendNonLin!, yInit, tSpan, p);
 # ----- Forward pass function -----
@@ -73,7 +72,7 @@ end
 # ----- Loss function -----
 function loss_adjoint()
     prediction = predict_adjoint();
-    loss = sum((prediction[1,:] - π.*ones(nSnap)).^2); # L2 norm
+    loss = sum((prediction[1,:] - thetaTargetVec).^2); # L2 norm
     return loss;
 end
 
@@ -85,18 +84,26 @@ lossHistory = []
 cb = function () 
     l=loss_adjoint();
     push!(lossHistory,l);
+    println(l)
 end
+
+
+
+# # ----- testing if gradient alone works -----
+# gradsPredict = gradient(() -> sum(predict_adjoint()), Params([p]))
+# gradsLoss = gradient(() -> sum(loss_adjoint()), Params([p]))
 
 
 # ====================
 # Training begins here
 # ====================
 cb()
-# # ----- testing if gradient alone works -----
-# grads = gradient(() -> sum(loss_adjoint()), Params(p))
-
-
 @info "Start training"
-Flux.train!(loss_adjoint, params, Iterators.repeated((), 5000), opt, cb = cb)
+Flux.train!(loss_adjoint, params, Iterators.repeated((), 300), opt, cb = cb)
 @info "Finished Training"
 
+# =================================================
+# Plotting the results : Testing to see if it works
+# =================================================
+# solMat=predict_adjoint()
+# makeMovie("InvertedpendOneShotControl.mp4")
