@@ -3,7 +3,7 @@ using DiffEqSensitivity
 using Flux
 using OrdinaryDiffEq
 using Zygote: gradient
-using Test #using Plots
+using Test 
 using PyCall
 using PyPlot
 
@@ -12,7 +12,6 @@ using PyPlot
 # ===============================
 # Setting up the dynamical system
 # ===============================
-
 
 # ----- RHS of the ODE -----
 function lotka_volterra(du,u,p,t)
@@ -40,6 +39,7 @@ tVec=Vector(0:dtSnap:timeIntegre)
 p = 0.01 .*(rand(2*length(tVec)).- 0.5)
 u0 = [1.0,1.0]                  # Initial Condition
 prob = ODEProblem(lotka_volterra,u0,(0.0,timeIntegre),p)
+
 
 
 # ----- Prediction function -----
@@ -71,3 +71,4 @@ Flux.train!(loss_rd, Flux.params(p), Iterators.repeated((), 100), opt, cb = cb)
 
 # ----- Calculating gradient of the loss function -----
 grads = gradient(() -> loss_rd(), Params([p]))
+

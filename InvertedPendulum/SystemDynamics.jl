@@ -2,7 +2,6 @@
 # Nonlinear system
 # ================
 
-
 # ----- General Description -----
 # A dynamical system consisting of an inverted pendulum on a cart.
 # The state is fully determined as y=[θ , dθ/dt, x, dx/dt]
@@ -11,7 +10,6 @@
 # dy2/dt=(f*cos(y1)+(mC+mP)g*sin(y1)+mP*L*cos(y1)*sin(y1)*y2^2)/(mP*L*cos(y1)^2-(mP+mC)*L)
 # dy3/dt=y4
 # dy4/dt=(f+mP*L*sin(y1)y2^2-mPgcos(y1)sin(y1))/(mC+mP*sin(y1)^2)
-
 
 # ----- RHS of the NonLinearSystem -----
 function cartPendNonLin!(dy,y,p,t)
@@ -34,7 +32,7 @@ function cartPendNonLin!(dy,y,p,t)
 
     # ----- Defining an external function to get input and its derivative will also be declared -----
     # f=getForce(t)
-
+    
     
     # ----- Deconstruct the state -----
     y1=y[1];                    # θ
@@ -55,6 +53,62 @@ function cartPendNonLin!(dy,y,p,t)
     dy[3]=y4;
     dy[4]=(f+mP*L*Sy*y2^2-mP*g*Cy*Sy)/
         (mC+mP*Sy^2);
+end
+
+
+
+# The above system of equations can be non-dimensionalized using the following parameters
+# q=x/L
+# u=f/mg
+# τ=t*(g/L)^0.5
+# δ=M/m
+
+# the non dimensional equations become:
+# dy1/dt=y2
+# dy2/dt=(y2^2*sin(y1)*cos(y1) - (1+δ)*sin(y1) +u*cos(y1))/(cos(y1)^2-(1+δ))
+# dy3/dt=y4
+# dy4/dt=(sin(y1)cos(y1)-y2^2*sin(y1) - u)/(cos(y1)^2 - (1+δ))
+
+# ----- RHS of the non dimensionalized NonLinearSystem -----
+function nonDimCartPendNonLin!(dy,y,p,t)
+
+    # ----- Deriving a mask vector that can then be used to select the correct input -----
+    # maskVec=@ignore Int.(tVec.<(t)) .- Int.(tVec.<(t-dtSnap))
+    # f=p'*maskVec
+
+    # ----- doing the same as above but using tanh functions now -----
+    # grad=100;
+    # f=p'*(tanh.(grad*(t.- tVec)).+ tanh.(.- grad*(t.- (tVec .+ dtSnap./2))))
+    
+    # f=0;
+    # for iTime in 1:length(tVec)
+    #     f += p[iTime]*controlWindow(t)[iTime];
+    # end
+    
+    # ----- chosing the chontrol input using floor function probably not differentiable -----
+    u=p[Int(floor(t/dtSnap)+1)]
+
+    # ----- Defining an external function to get input and its derivative will also be declared -----
+    # f=getForce(t)
+
+    
+    # ----- Deconstruct the state -----
+    y1=y[1];                    # θ
+    y2=y[2];                    # dθ/dt
+    y3=y[3];                    # x
+    y4=y[4];                    # dx/dt
+
+    # ----- Assign sin(y1) and cos(y1) -----
+    Sy=sin(y1);
+    Cy=cos(y1);
+    
+    # ----- θ equations -----
+    dy[1]=y2;
+    dy[2]=(y2^2*sin(y1)*cos(y1) - (1+δ)*sin(y1) +u*cos(y1))/(cos(y1)^2-(1+δ));
+
+    # ----- X equations -----
+    dy[3]=y4;
+    dy[4]=(sin(y1)cos(y1)-y2^2*sin(y1) - u)/(cos(y1)^2 - (1+δ));
 end
 
 

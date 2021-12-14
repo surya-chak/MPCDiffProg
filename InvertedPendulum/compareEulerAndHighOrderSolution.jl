@@ -50,3 +50,10 @@ probNoControl = ODEProblem(cartPendNonLin!, yInit, tSpan, forcingVec);
 solHighOrder = Array(solve(probNoControl, Tsit5(),saveat=0.0:dtSnap:timeIntegre));
 
 error=solHighOrder-solEuler;
+
+prtein(j);
+
+j=j+10;
+
+
+print(i);
