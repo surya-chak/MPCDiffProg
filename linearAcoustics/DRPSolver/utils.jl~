@@ -1,0 +1,106 @@
+module GeneralVariables
+
+struct Grid
+    il::Int
+    jl::Int
+    dx::Real
+    dy::Real
+    x::Array{il,jl}
+    y::Array{il,jl}
+end
+
+export Grid
+
+
+
+export dt,tVec                       # Specifications of the itme series
+export c, L, kh, freq           # Acoustic propagation parameters
+
+# ----- export functions that we may need from main -----
+export RHS_wave!
+
+c=1
+
+
+
+# ===========================
+# Details of the source field  
+# ===========================
+
+dt=1e-2;
+# dt=5e-3;
+nn=5000;
+tFin=(nn-1)*dt;
+tVec=LinRange(0,tFin,nn);
+
+freq=0.3;                       #Frequency of the field being simulated 
+freq=2*pi*freq;
+
+# Jet Mach number
+Mj=1.3;
+Ma=Mj*0.6;                              # convective Mach number
+kh=freq/(Ma)^2;
+L=5/kh;
+
+
+function RHS_wave!(dState,state,params,t)
+
+
+    state_new=reshape(state,il,jl,2);
+
+    v1=state_new[:,:,1];
+    v2=state_new[:,:,2];
+    out_val=zeros(il*jl*2,1);
+
+    v1_x=uni_grad(v1,1);
+    v1_xx=uni_grad(v1_x,1);
+    
+    v1_y=uni_grad(v1,2);
+    v1_yy=uni_grad(v1_y,2);
+
+    dv1dt=v2;
+    dv2dt=c^2*(v1_xx+v1_yy)+source(x,y,t);
+
+    dState=[dv1dt(:);dv2dt(:)];
+end
+
+function source(x,y,t)
+
+    # source_val=10*sin(freq*t)*exp(-10*(x.^2+y.^2)); % monopole source
+    source_val=sin(freq*t-kh*x).*exp(-((x-2*L)/L).^2).*exp(-2*(y).^2);
+    return source_val
+end
+    
+function uni_grad(fun,dir)
+
+    a1=0.79926643;
+    am1=-a1;
+
+    a2=-0.18941314;
+    am2=-a2;
+
+    a3=0.02651995;
+    am3=-a3;
+
+    fun_der=zeros(size(fun));
+
+    if dir == 1                 # X derivative
+        fun_der[4:end-3,:]=a1*fun[5:end-2,:]+am1*fun[3:end-4,:];
+        fun_der[4:end-3,:]=fun_der[4:end-3,:]+a2*fun[6:end-1,:]+am2*fun[2:end-5,:];
+        fun_der[4:end-3,:]=fun_der[4:end-3,:]+a3*fun[7:end,:]+am3*fun[1:end-6,:];
+        fun_der=fun_der./(dx);
+
+    elseif dir == 2             # Y derivative
+        fun_der[:,4:end-3]=a1*fun[:,5:end-2]+am1*fun[:,3:end-4];
+        fun_der[:,4:end-3]=fun_der[:,4:end-3]+a2*fun[:,6:end-1]+am2*fun[:,2:end-5];
+        fun_der[:,4:end-3]=fun_der[:,4:end-3]+a3*fun[:,7:end]+am3*fun[:,1:end-6];
+        fun_der=fun_der./(dy);
+    end
+
+    return fun_der
+end
+
+
+
+
+end                             # end of module
