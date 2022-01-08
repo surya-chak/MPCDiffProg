@@ -104,11 +104,11 @@ function nonDimCartPendNonLin!(dy,y,p,t)
     
     # ----- θ equations -----
     dy[1]=y2;
-    dy[2]=(y2^2*sin(y1)*cos(y1) - (1+δ)*sin(y1) +u*cos(y1))/(cos(y1)^2-(1+δ));
+    dy[2]=(y2^2*Sy*Cy - (1+δ)*Sy +u*Cy)/(Cy^2-(1+δ));
 
     # ----- X equations -----
     dy[3]=y4;
-    dy[4]=(sin(y1)cos(y1)-y2^2*sin(y1) - u)/(cos(y1)^2 - (1+δ));
+    dy[4]=(Sy*Cy-y2^2*Sy - u)/(Cy^2 - (1+δ));
 end
 
 
@@ -178,7 +178,7 @@ function plotSnap(i)
     
     println(i+1);
     clf();
-    time=tVec[i+1];
+    timeInst=tVecLong[i+1];
     θ=solMat[1,i+1];
 
     # ----- Calculating the location of the cart -----
@@ -187,7 +187,7 @@ function plotSnap(i)
 
     # ----- Calclating the locaiton of the Pendulum -----
     xPend=xCart+L*sin(θ);
-    yPend=-L*cos(θ);
+    yPend=L*cos(θ);
     # ----- Calculating the line connecting cart to pendulum -----
     xLine=[xCart,xPend];
     yLine=[yCart,yPend];
@@ -200,10 +200,10 @@ function plotSnap(i)
     # ----
     xlim(-3,3)
     xlabel(L"x",FontSize=21)
-    ylim(-1,1)
+    ylim(-1.1,1.1)
     ylabel(L"y",FontSize=21)
 
-    title("Cart animation at t=$time",FontSize=21)
+    title(@sprintf("Cart animation at t=%5.2f",timeInst),FontSize=21)
     # ax.set_aspect=1
     # ax.spines["right"].set_visible(false);
     # ax.spines["top"].set_visible(false);

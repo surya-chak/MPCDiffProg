@@ -1,4 +1,5 @@
 using JLD2
+using Printf
 using DifferentialEquations
 using PyCall
 using PyPlot
@@ -6,7 +7,6 @@ using Trapz
 using Prettify
 using IJulia
 using DelimitedFiles
-
 using Flux
 using DiffEqFlux
 using Optim
@@ -53,6 +53,8 @@ p=controlInit;
 nSim=100;
 tSimLong=(nSim-1).* dtSnap;
 tVecLong=LinRange(0,tSimLong,nSim)
+
+yInit=[0.05*π,0,0,0]; #init conditions
 
 yFullSim=zeros(4,nSim);
 yFullSim[:,1]=yInit;
@@ -134,3 +136,5 @@ plot(tVecLong,controlFullSim,label="Simulation",linewidth=3)
 
 tight_layout()
 
+solMat=yFullSim;
+makeMovie("fullControlledPendulum.mp4")

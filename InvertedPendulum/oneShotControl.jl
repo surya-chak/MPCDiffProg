@@ -189,7 +189,7 @@ legend()
 
 
 tight_layout()
-
+savefig("singleIterationOptimalControl.jpg")
 # ----- make movie to plot final results for one shot control -----
 # solMat=predict_adjoint()
 # makeMovie("InvertedpendOneShotControl.mp4")
