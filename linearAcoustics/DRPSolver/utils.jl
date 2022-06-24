@@ -1,5 +1,9 @@
 module GeneralVariables
 
+using PyPlot
+
+dState = 0.0;
+
 struct Grid
     il :: Int
     jl :: Int
@@ -30,7 +34,11 @@ struct Simulation
     function Simulation(tVec,x::Matrix{Float64},y::Matrix{Float64})
         grid=Grid(x,y);
         dt=tVec[2]-tVec[1];
-        new(dt,tVec,grid);
+        soln = zeros(grid.il*grid.jl*2)
+        new(dt,
+            tVec,
+            grid,
+            );
     end
 end
 
@@ -41,7 +49,10 @@ function printLimits(sim::Simulation)
     print(string(sim.grid.il," ",sim.grid.jl))
 end
 
+
 export printLimits
+
+
 
 
 # export c, L, kh, freq           # Acoustic propagation parameters
@@ -51,12 +62,12 @@ c=1.0;
 
 
 function RHS_wave!(dState::Array{Float64,1}, state::Array{Float64,1}, sim::Simulation, t::Float64)
-    
-    state_new=reshape(state,sim.grid.il,sim.grid.jl,2);
+    # println(t)
+    state_new=reshape(state,(sim.grid.il,sim.grid.jl,2));
 
     v1=state_new[:,:,1];
     v2=state_new[:,:,2];
-    out_val=zeros(sim.grid.il*sim.grid.jl*2,1);
+    # out_val=zeros(sim.grid.il*sim.grid.jl*2,1);
 
     v1_x=uniGrad(v1,1,sim);
     v1_xx=uniGrad(v1_x,1,sim);
@@ -67,7 +78,7 @@ function RHS_wave!(dState::Array{Float64,1}, state::Array{Float64,1}, sim::Simul
     dv1dt=v2;
     dv2dt=c^2*(v1_xx+v1_yy)+source(sim,t);
 
-    dState=vcat(dv1dt,dv2dt);
+    dState[:]=vcat(dv1dt[:],dv2dt[:]);
 end
 
 
@@ -88,6 +99,8 @@ function source(sim::Simulation,t::Float64)
         exp.(-2 .*(sim.grid.y).^2);
     return source_val
 end
+
+export source
 
 function uniGrad(fun::Array{Float64,2},dir::Int,sim::Simulation)
 
@@ -118,6 +131,31 @@ function uniGrad(fun::Array{Float64,2},dir::Int,sim::Simulation)
     return fun_der
 end
 
-export RHS_wave!, uniGrad, source
+
+
+function plotResult(i::Int,sim::Simulation,ax)
+    ax.contourf(sim.grid.x,sim.grid.x,sim.savedSol[i],cmap=ColorMap("jet"))
+    # ----
+    xlim(0,10)
+    ylim(-5,5)
+    clim(-1e-5,1e-5)
+    xlabel(L"x/D_e",FontSize=21)
+    ylabel(L"y/D_e",FontSize=21)
+    title(L"snapshot number $$i",FontSize=21)
+    ax.minorticks_on()
+    ax.tick_params(axis="both",which="major",length=8,width=3)
+    ax.tick_params(axis="both",which="minor",length=5,width=2)
+    # ----
+
+
+
+    
+
+end
+
+
+export RHS_wave!, plotResult, uniGrad, source, dState
+
+
 
 end                             # end of module
