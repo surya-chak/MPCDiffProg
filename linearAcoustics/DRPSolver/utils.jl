@@ -29,16 +29,17 @@ struct Simulation
     tVec :: Array{Float64,1}
     # ----- Details of the grid -----
     grid :: Grid
+    filtVec::Array{Float64,2}
 
     # ----- Constructor for the structure -----
-    function Simulation(tVec,x::Matrix{Float64},y::Matrix{Float64})
+    function Simulation(tVec,x::Matrix{Float64},y::Matrix{Float64},filtVec)
         grid=Grid(x,y);
         dt=tVec[2]-tVec[1];
         soln = zeros(grid.il*grid.jl*2)
         new(dt,
             tVec,
             grid,
-            );
+            filtVec);
     end
 end
 
@@ -65,8 +66,8 @@ function RHS_wave!(dState::Array{Float64,1}, state::Array{Float64,1}, sim::Simul
     # println(t)
     state_new=reshape(state,(sim.grid.il,sim.grid.jl,2));
 
-    v1=state_new[:,:,1];
-    v2=state_new[:,:,2];
+    v1=state_new[:,:,1] .* sim.filtVec;
+    v2=state_new[:,:,2] .* sim.filtVec;
     # out_val=zeros(sim.grid.il*sim.grid.jl*2,1);
 
     v1_x=uniGrad(v1,1,sim);
@@ -94,9 +95,13 @@ function source(sim::Simulation,t::Float64)
     kh=freq/(Ma)^2;
     L=5/kh;
 
-    source_val=sin.(freq*t .- kh.*sim.grid.x).*
-        exp.(-((sim.grid.x .- 2*L)./L).^2).*
+    # source_val=sin.(freq*t .- kh.*sim.grid.x).*
+    #     exp.(-((sim.grid.x .- 2*L)./L).^2).*
+    #     exp.(-2 .*(sim.grid.y).^2);
+    source_val=sin.(freq*t).*
+        exp.(-((sim.grid.x .- 10.0)).^2).*
         exp.(-2 .*(sim.grid.y).^2);
+
     return source_val
 end
 
